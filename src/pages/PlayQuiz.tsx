@@ -34,6 +34,12 @@ const PlayQuiz = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasAnswered, setHasAnswered] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
+  const [answerStats, setAnswerStats] = useState<Record<string, number>>({
+    A: 5,
+    B: 12,
+    C: 3,
+    D: 8
+  });
 
   useEffect(() => {
     // TODO: Replace with your backend WebSocket/SSE connection
@@ -54,10 +60,14 @@ const PlayQuiz = () => {
     }
   }, [timeLeft, session?.status, hasAnswered]);
 
-  const submitAnswer = async (answer: string) => {
-    if (hasAnswered || !currentQuestion) return;
+  const handleOptionSelect = (option: string) => {
+    if (hasAnswered || timeLeft === 0) return;
+    setSelectedAnswer(option);
+  };
 
-    setSelectedAnswer(answer);
+  const submitAnswer = async () => {
+    if (hasAnswered || !selectedAnswer || !currentQuestion) return;
+
     setHasAnswered(true);
 
     try {
@@ -68,7 +78,7 @@ const PlayQuiz = () => {
       //   body: JSON.stringify({ 
       //     participantId, 
       //     questionId: currentQuestion.id, 
-      //     answer,
+      //     answer: selectedAnswer,
       //     timeTaken: currentQuestion.time_limit - timeLeft 
       //   })
       // });
@@ -79,14 +89,13 @@ const PlayQuiz = () => {
     }
   };
 
-  const getAnswerColor = (option: string) => {
-    const colors = {
-      A: 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
-      B: 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-      C: 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
-      D: 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-    };
-    return colors[option as keyof typeof colors];
+  const getTotalAnswers = () => {
+    return Object.values(answerStats).reduce((sum, count) => sum + count, 0);
+  };
+
+  const getPercentage = (option: string) => {
+    const total = getTotalAnswers();
+    return total > 0 ? Math.round((answerStats[option] / total) * 100) : 0;
   };
 
   return (
@@ -115,49 +124,92 @@ const PlayQuiz = () => {
         )}
 
         {session.status === 'active' && !session.show_leaderboard && currentQuestion && (
-          <Card className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold">Answer the question</h3>
-              <div className="flex items-center gap-2 text-warning">
+          <Card className="p-8 bg-card border-border rounded-3xl">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-lg font-semibold text-muted-foreground">Question</h3>
+              <div className="flex items-center gap-2 text-primary">
                 <Clock className="h-5 w-5" />
-                <span className="text-xl font-bold">{timeLeft}s</span>
+                <span className="text-2xl font-bold">{timeLeft}s</span>
               </div>
             </div>
 
-            <div className="p-6 bg-muted rounded-lg mb-6">
-              <p className="text-xl font-semibold mb-4">{currentQuestion.question_text}</p>
+            <div className="mb-8">
+              <p className="text-2xl font-bold mb-6">{currentQuestion.question_text}</p>
               {currentQuestion.question_image_url && (
                 <img 
                   src={currentQuestion.question_image_url} 
                   alt="Question" 
-                  className="w-full max-h-64 object-contain rounded-lg"
+                  className="w-full max-h-64 object-contain rounded-2xl"
                 />
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4 mb-6">
               {['A', 'B', 'C', 'D'].map(option => {
                 const optionText = currentQuestion[`option_${option.toLowerCase()}`];
                 if (!optionText) return null;
                 
+                const isSelected = selectedAnswer === option;
+                const percentage = hasAnswered ? getPercentage(option) : 0;
+                
                 return (
-                  <Button
+                  <div
                     key={option}
-                    onClick={() => submitAnswer(option)}
-                    disabled={hasAnswered || timeLeft === 0}
-                    className={`h-auto py-6 px-6 text-left justify-start bg-gradient-to-br ${getAnswerColor(option)} text-white disabled:opacity-50 ${
-                      selectedAnswer === option ? 'ring-4 ring-white' : ''
+                    onClick={() => handleOptionSelect(option)}
+                    className={`relative p-6 rounded-2xl border-2 transition-all cursor-pointer ${
+                      hasAnswered 
+                        ? 'cursor-default' 
+                        : 'hover:border-primary/50'
+                    } ${
+                      isSelected && !hasAnswered
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border bg-card/50'
+                    } ${
+                      hasAnswered && isSelected
+                        ? 'border-primary bg-primary/20'
+                        : ''
                     }`}
                   >
-                    <span className="text-2xl font-bold mr-3">{option}</span>
-                    <span className="text-lg">{optionText}</span>
-                  </Button>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
+                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {option}
+                      </div>
+                      <span className="text-lg font-medium flex-1">{optionText}</span>
+                      {hasAnswered && (
+                        <div className="text-right">
+                          <div className="text-sm text-muted-foreground">{answerStats[option]} votes</div>
+                          <div className="text-lg font-bold text-primary">{percentage}%</div>
+                        </div>
+                      )}
+                    </div>
+                    {hasAnswered && (
+                      <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
 
-            {hasAnswered && (
-              <p className="text-center mt-6 text-lg font-semibold text-success">
+            {!hasAnswered ? (
+              <div className="flex justify-center">
+                <Button
+                  onClick={submitAnswer}
+                  disabled={!selectedAnswer || timeLeft === 0}
+                  size="lg"
+                  className="w-64 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full text-lg"
+                >
+                  Submit Answer
+                </Button>
+              </div>
+            ) : (
+              <p className="text-center text-lg font-semibold text-primary">
                 Answer submitted! Wait for the next question...
               </p>
             )}

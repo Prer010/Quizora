@@ -16,13 +16,18 @@ const generateJoinCode = () => {
 export const createSession = mutation({
   args: { quizId: v.id("quizzes") },
   handler: async (ctx, args) => {
-    // Get the currently authenticated user's ID
+    // Get the currently authenticated user's ID (or anonymous ID)
     const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("You must be logged in to host a quiz.");
+    const hostId = userId ?? "anonymous"; // Default to "anonymous" if null
 
-    // Fetch the quiz and ensure the host is the creator
+    // Fetch the quiz
     const quiz = await ctx.db.get(args.quizId);
-    if (!quiz || quiz.creatorId !== userId) {
+    if (!quiz) {
+      throw new Error("Quiz not found.");
+    }
+    
+    // Allow hosting if the quiz is anonymous OR if the host is the creator
+    if (quiz.creatorId !== "anonymous" && quiz.creatorId !== hostId) {
       throw new Error("You are not authorized to host this quiz.");
     }
 
@@ -45,7 +50,7 @@ export const createSession = mutation({
     // Create the quiz session
     const sessionId = await ctx.db.insert("quiz_sessions", {
       quizId: args.quizId,
-      hostId: userId,
+      hostId: hostId, // Use the determined hostId
       join_code,
       status: "waiting",
       current_question_index: 0,
@@ -89,7 +94,12 @@ export const getHostSessionData = query({
     if (!session) return null;
 
     const userId = await getAuthUserId(ctx);
-    if (session.hostId !== userId) return null; // Security: Only host can view
+    const hostId = userId ?? "anonymous";
+
+    // Security: Only host can view (or anyone if host was anonymous)
+    if (session.hostId !== "anonymous" && session.hostId !== hostId) {
+       return null; 
+    }
 
     const quiz = await ctx.db.get(session.quizId);
     if (!quiz) return null;

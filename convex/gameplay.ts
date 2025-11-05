@@ -9,7 +9,10 @@ const checkHost = async (ctx: any, sessionId: any) => {
     throw new Error("Session not found.");
   }
   const identity = await ctx.auth.getViewerIdentity();
-  if (session.hostId !== identity?.subject) {
+  const userId = identity?.subject ?? "anonymous"; // Default to "anonymous"
+
+  // Allow action if the session host was anonymous OR if the user is the host
+  if (session.hostId !== "anonymous" && session.hostId !== userId) {
     throw new Error("Not authorized to perform this action.");
   }
   return session;

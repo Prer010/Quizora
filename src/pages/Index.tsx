@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Users, Zap } from "lucide-react";
-import { Authenticated } from "convex/react"; 
+// import { Authenticated } from "convex/react"; // <-- REMOVED
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,30 +21,28 @@ const Index = () => {
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
           
-          {/* V 2. Wrap this Card V */}
-          <Authenticated>
-            <Card 
-              className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-2 hover:border-primary"
-              onClick={() => navigate('/create-quiz')}
-            >
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
-                  <Sparkles className="w-8 h-8 text-primary-foreground" />
-                </div>
-                <h2 className="text-2xl font-bold">Create Quiz</h2>
-                <p className="text-muted-foreground">
-                  Design your own quiz with custom questions, images, and timers
-                </p>
-                <Button 
-                  size="lg" 
-                  className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90"
-                >
-                  Start Creating
-                </Button>
+          {/* V 2. Wrapper Removed V */}
+          <Card 
+            className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-2 hover:border-primary"
+            onClick={() => navigate('/create-quiz')}
+          >
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-primary-foreground" />
               </div>
-            </Card>
-          </Authenticated>
-          {/* ^ 2. End of wrapper ^ */}
+              <h2 className="text-2xl font-bold">Create Quiz</h2>
+              <p className="text-muted-foreground">
+                Design your own quiz with custom questions, images, and timers
+              </p>
+              <Button 
+                size="lg" 
+                className="w-full bg-gradient-to-r from-primary to-primary-glow hover:opacity-90"
+              >
+                Start Creating
+              </Button>
+            </div>
+          </Card>
+          {/* ^ 2. Wrapper Removed ^ */}
 
           <Card 
             className=" rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-2 hover:border-secondary"

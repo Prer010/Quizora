@@ -11,7 +11,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <h1 className="text-6xl md:text-7xl font-black mb-4 bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            QuizMaster
+            Quiz
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground">
             Create engaging quizzes and compete in real-time!

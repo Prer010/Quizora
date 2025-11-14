@@ -79,10 +79,10 @@ const PlayQuiz = () => {
     session?.show_leaderboard, 
     session?.currentQuestionEndTime,
     hasAnswered,
-    currentQuestion, // Added dependency
+    currentQuestion?.time_limit, // Added dependency
     toast
   ]);
-  // --- END FIX ---
+
 
 
   const handleOptionSelect = (option: string) => {

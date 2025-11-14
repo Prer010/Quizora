@@ -41,13 +41,14 @@ const PlayQuiz = () => {
   // 1. Initialize to a simple default value.
   const [timeLeft, setTimeLeft] = useState(30);
 
-  // 2. This single effect now handles all timer logic for the player.
+  // 2. This effect resets the player's selection when the question changes.
   useEffect(() => {
     // When the question ID changes, reset the local selected answer state
     setSelectedAnswer(null);
   }, [currentQuestion?._id]);
   
-useEffect(() => {
+  // 3. This effect manages the timer logic based on the session state.
+  useEffect(() => {
     // Guard against running before data is loaded
     if (!session) {
       return;
@@ -86,7 +87,7 @@ useEffect(() => {
     hasAnswered,
     currentQuestion?.time_limit, // <-- THIS IS THE FIX
   ]);
-
+  // --- END FIX ---
 
 
   const handleOptionSelect = (option: string) => {
@@ -115,12 +116,8 @@ useEffect(() => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
-
-  // ... (rest of the file is unchanged) ...
-  // ... (loading states, JSX, etc.) ...
-  // ...
   
-  // 7. Handle loading state
+  // Handle loading state
   if (sessionData === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -129,7 +126,7 @@ useEffect(() => {
     );
   }
 
-  // 8. Handle not found or invalid participant
+  // Handle not found or invalid participant
   if (sessionData === null) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">

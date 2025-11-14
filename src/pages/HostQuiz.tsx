@@ -1,38 +1,32 @@
 // src/pages/HostQuiz.tsx
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Play, SkipForward, Trophy, Clock, Loader2, ArrowLeft } from "lucide-react";
-import { useQuery, useMutation } from "convex/react"; // 1. Import Convex hooks
-import { api } from "../../convex/_generated/api"; // 2. Import API
-import { Id } from "../../convex/_generated/dataModel"; // 3. Import Id type
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api"; 
+import { Id } from "../../convex/_generated/dataModel"; 
 
 const HostQuiz = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [timeLeft, setTimeLeft] = useState(0);
-  // const [timerStarted, setTimerStarted] = useState(false); // <-- REMOVED
-
-  // 4. Get all data from one real-time query
+  
   const sessionData = useQuery(
     api.sessions.getHostSessionData,
     sessionId ? { sessionId: sessionId as Id<"quiz_sessions"> } : "skip"
   );
-
-  // 5. Get mutation functions
+  
   const startQuizMutation = useMutation(api.gameplay.startQuiz);
 
-  // Extract data from the query result
   const session = sessionData?.session;
   const quiz = sessionData?.quiz;
   const questions = sessionData?.questions;
   const participants = sessionData?.participants;
   const currentQuestion = sessionData?.currentQuestion;
-  // Build an array of options dynamically from fields like option_a, option_b, option_c, ...
+  
   const options = currentQuestion
     ? Object.keys(currentQuestion)
         .filter((k) => k.startsWith("option_"))
@@ -44,7 +38,19 @@ const HostQuiz = () => {
         .filter((o) => o.text)
     : [];
 
-  // --- REPLACED TIMER LOGIC ---
+  // --- START FIX ---
+  // 1. Initialize to a default non-zero value
+  const [timeLeft, setTimeLeft] = useState(currentQuestion?.time_limit || 30);
+
+  // 2. This new effect sets the time from the question data *as soon as it loads*.
+  useEffect(() => {
+    if (currentQuestion && !session?.currentQuestionEndTime) {
+      setTimeLeft(currentQuestion.time_limit);
+    }
+  }, [currentQuestion, session?.currentQuestionEndTime]);
+  // --- END FIX ---
+
+  // This is your existing, correct effect that syncs with the server.
   useEffect(() => {
     if (session?.status === 'active' && !session.show_leaderboard && session.currentQuestionEndTime) {
       
@@ -62,8 +68,6 @@ const HostQuiz = () => {
 
       updateTimer(); // Initial call
       const timer = setInterval(updateTimer, 1000); // 1-second interval
-
-      // Cleanup interval
       return () => clearInterval(timer);
       
     }
@@ -73,15 +77,11 @@ const HostQuiz = () => {
     session?.currentQuestionEndTime, 
     toast
   ]);
-  // --- END REPLACED TIMER LOGIC ---
 
-  // reveal state is controlled by the session (server). No local reset needed here.
   const showLeaderboardMutation = useMutation(api.gameplay.showLeaderboard);
   const setRevealAnswerMutation = useMutation(api.gameplay.setRevealAnswer);
   const nextQuestionMutation = useMutation(api.gameplay.nextQuestion);
 
-
-  // 6. Hook up mutations
   const startQuiz = async () => {
     if (!sessionId) return;
     try {
@@ -109,15 +109,12 @@ const HostQuiz = () => {
     }
   };
 
-  // ADDED: New handler for the leaderboard button
   const handleShowLeaderboardClick = () => {
     if (!questions || !session) return;
     
     if (session.current_question_index === questions.length - 1) {
-      // This is the last question. Go straight to final results.
       nextQuestion();
     } else {
-      // Not the last question. Show the per-question leaderboard.
       showLeaderboard();
     }
   };
@@ -136,7 +133,6 @@ const HostQuiz = () => {
   }
 
   // 8. Handle not found or not authorized
-  // (getHostSessionData returns null if user is not host)
   if (sessionData === null) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
@@ -155,7 +151,10 @@ const HostQuiz = () => {
       </div>
     );
   }
-
+  
+  // ... (rest of the file is unchanged) ...
+  // ... (JSX for host view) ...
+  // ...
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 p-2 ">
       <div className="container max-w-6xl mx-auto mt-20">

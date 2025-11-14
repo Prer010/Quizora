@@ -43,6 +43,11 @@ const PlayQuiz = () => {
 
   // 2. This single effect now handles all timer logic for the player.
   useEffect(() => {
+    // When the question ID changes, reset the local selected answer state
+    setSelectedAnswer(null);
+  }, [currentQuestion?._id]);
+  
+useEffect(() => {
     // Guard against running before data is loaded
     if (!session) {
       return;
@@ -79,7 +84,7 @@ const PlayQuiz = () => {
     session?.show_leaderboard, 
     session?.currentQuestionEndTime,
     hasAnswered,
-    currentQuestion?.time_limit, // Added dependency
+    currentQuestion?.time_limit, // <-- THIS IS THE FIX
     toast
   ]);
 

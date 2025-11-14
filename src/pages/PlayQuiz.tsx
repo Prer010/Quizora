@@ -38,25 +38,18 @@ const PlayQuiz = () => {
   const hasAnswered = sessionData?.hasAnswered;
 
   // --- START FIX ---
-  // 1. Initialize to a default non-zero value (e.g., 30 seconds)
-  //    This prevents `timeLeft === 0` from disabling buttons on first render.
-  const [timeLeft, setTimeLeft] = useState(currentQuestion?.time_limit || 30);
+  // 1. Initialize to a simple default value.
+  const [timeLeft, setTimeLeft] = useState(30);
 
-  // 2. This new effect sets the time from the question data *as soon as it loads*.
-  //    This is a fallback in case the server end time isn't set yet.
+  // 2. This single effect now handles all timer logic for the player.
   useEffect(() => {
-    if (currentQuestion && !session?.currentQuestionEndTime) {
-      setTimeLeft(currentQuestion.time_limit);
+    // Guard against running before data is loaded
+    if (!session) {
+      return;
     }
-  }, [currentQuestion, session?.currentQuestionEndTime]);
-  // --- END FIX ---
 
-
-  // This is your existing, correct effect that syncs with the server.
-  // It will override the default value above as soon as it runs.
-  useEffect(() => {
-    if (session?.status === 'active' && !session.show_leaderboard && session.currentQuestionEndTime && !hasAnswered) {
-      
+    if (session.status === 'active' && !session.show_leaderboard && session.currentQuestionEndTime && !hasAnswered) {
+      // --- TIMER IS ACTIVE AND COUNTING DOWN ---
       const updateTimer = () => {
         const now = Date.now();
         const remainingMs = session.currentQuestionEndTime! - now;
@@ -74,15 +67,23 @@ const PlayQuiz = () => {
       return () => clearInterval(timer);
       
     } else if (hasAnswered) {
+      // --- PLAYER HAS ANSWERED ---
       setTimeLeft(0);
+    } else if (session.status === 'waiting' && currentQuestion) {
+      // --- TIMER IS WAITING (show full time) ---
+      setTimeLeft(currentQuestion.time_limit);
     }
+    
   }, [
     session?.status, 
     session?.show_leaderboard, 
-    session?.currentQuestionEndTime, 
-    hasAnswered, 
+    session?.currentQuestionEndTime,
+    hasAnswered,
+    currentQuestion, // Added dependency
     toast
   ]);
+  // --- END FIX ---
+
 
   const handleOptionSelect = (option: string) => {
     if (hasAnswered || timeLeft === 0) return;

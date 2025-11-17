@@ -78,7 +78,7 @@ const JoinQuiz = () => {
   // The PlayQuiz page will now handle all states: waiting, active, and finished.
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/10 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-white/40 via-white/600 to-white/80 dark:bg-gradient-to-b dark:from-black/80 dark:via-black/80 dark:to-black/80 flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 bg-card border-border border-x-primary-foreground-30 rounded-3xl shadow-2xl">
         <Button
           variant="ghost"

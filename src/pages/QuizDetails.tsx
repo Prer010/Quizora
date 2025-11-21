@@ -129,7 +129,7 @@ const QuizDetails = () => {
               ) : (
                 <>
                   <Copy className="h-5 w-5" />
-                  Copy Link
+                  Copy Link for Host
                 </>
               )}
             </Button>

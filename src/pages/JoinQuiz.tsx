@@ -20,11 +20,9 @@ const JoinQuiz = () => {
   const { isSignedIn } = useAuth(); // <-- 3. Get auth status
   const { user } = useUser(); // <-- 4. Get user object
 
-  // 5. This effect will run when the component loads
-  // and whenever the user's login status changes.
+  
   useEffect(() => {
-    // If the user is signed in and we have their user info,
-    // automatically set their name.
+   
     if (isSignedIn && user?.fullName) {
       setName(user.fullName);
     }
@@ -82,7 +80,7 @@ const JoinQuiz = () => {
       <Card className="w-full max-w-md p-8 bg-card border-border border-x-primary-foreground-30 rounded-3xl shadow-2xl">
         <Button
           variant="ghost"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="mb-6 text-primary hover:text-primary hover:bg-primary/10 hover: rounded-full"
         >
           <ArrowLeft className=" h-4 w-4" />
@@ -109,7 +107,6 @@ const JoinQuiz = () => {
             />
           </div>
 
-          {/* --- 6. START: This block is now updated --- */}
           <div>
             <Label htmlFor="name" className="text-foreground">Your Name</Label>
             <Input

@@ -71,3 +71,49 @@ export const getQuizDetails = query({
     return { quiz, questions, creatorId: quiz.creatorId };
   },
 });
+
+// Get quizzes created by the currently authenticated user
+export const getMyQuizzes = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const creatorId = identity.subject;
+
+    const quizzes = await ctx.db
+      .query("quizzes")
+      .withIndex("by_creator", (q) => q.eq("creatorId", creatorId))
+      .order("desc")
+      .collect();
+
+    // Return minimal fields needed by the client
+    return quizzes.map((q) => ({ _id: q._id, title: q.title, description: q.description }));
+  },
+});
+
+// Delete a quiz and its questions. Only the creator may delete.
+export const deleteQuiz = mutation({
+  args: { id: v.id("quizzes") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const quiz = await ctx.db.get(args.id);
+    if (!quiz) throw new Error("Quiz not found");
+    if (quiz.creatorId !== identity.subject) throw new Error("Not authorized to delete this quiz");
+
+    // Delete questions belonging to the quiz
+    const questions = await ctx.db
+      .query("questions")
+      .withIndex("by_quizId_order", (q) => q.eq("quizId", args.id))
+      .collect();
+
+    for (const q of questions) {
+      await ctx.db.delete(q._id);
+    }
+
+    // Delete the quiz
+    await ctx.db.delete(args.id);
+
+    return true;
+  },
+});

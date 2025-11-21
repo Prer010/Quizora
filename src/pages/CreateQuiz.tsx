@@ -167,7 +167,9 @@ const CreateQuiz = () => {
       });
 
       toast({ title: "Success!", description: "Quiz created successfully" });
-      navigate(`/quiz/${quizId}`); // <-- 5. Navigate to the new quiz
+      // Navigate back to the dashboard so the user sees their updated quiz list
+      navigate("/dashboard");
+
     } catch (error: any) {
       toast({ title: "Error", description: `Failed to create quiz: ${error.message}`, variant: "destructive" });
     } finally {
@@ -180,7 +182,7 @@ const CreateQuiz = () => {
       <div className="container max-w-4xl mx-auto px-4">
         <Button
           variant="ghost"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="mb-6 rounded-full"
         >
           <ArrowLeft className="h-4 w-4" />

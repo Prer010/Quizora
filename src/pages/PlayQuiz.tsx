@@ -35,39 +35,28 @@ const PlayQuiz = () => {
   const allParticipants = sessionData?.allParticipants;
   const currentQuestion = sessionData?.currentQuestion;
   const answerStats = sessionData?.answerStats;
-  // The Convex generated types may be out-of-date; access these fields
-  // via a safe `any` cast so TypeScript won't complain while runtime
-  // behavior remains unchanged. If you regenerate Convex types
-  // (e.g. `npx convex dev`) these casts can be removed.
+  
   const hasAnswered = (sessionData as any)?.hasAnswered ?? false;
   const submittedAnswer = (sessionData as any)?.submittedAnswer ?? null;
-  // --- START FIX ---
-  // 1. Initialize to a simple default value.
+  
   const [timeLeft, setTimeLeft] = useState(30);
 
-  // 2. This effect resets the player's selection when the question changes.
   useEffect(() => {
-    // When the question ID changes, reset the local selected answer state
     setSelectedAnswer(null);
   }, [currentQuestion?._id]);
-  // This effect runs when the data (re)loads from the server
   useEffect(() => {
-    // If the server says we've answered, update our local state
-    // to match the answer we submitted.
+    
     if (hasAnswered && submittedAnswer) {
       setSelectedAnswer(submittedAnswer);
     }
   }, [hasAnswered, submittedAnswer]);
   
-  // 3. This effect manages the timer logic based on the session state.
   useEffect(() => {
-    // Guard against running before data is loaded
     if (!session) {
       return;
     }
 
     if (session.status === 'active' && !session.show_leaderboard && session.currentQuestionEndTime && !hasAnswered) {
-      // --- TIMER IS ACTIVE AND COUNTING DOWN ---
       const updateTimer = () => {
         const now = Date.now();
         const remainingMs = session.currentQuestionEndTime! - now;

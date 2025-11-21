@@ -6,8 +6,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AuthButtons } from "@/components/AuthButtons";  // <-- 1. UNCOMMENT THIS
+import { AuthButtons } from "@/components/AuthButtons";
+import { SignInRedirect } from "@/components/SignInRedirect";
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 import CreateQuiz from "./pages/CreateQuiz";
 import JoinQuiz from "./pages/JoinQuiz";
 import QuizDetails from "./pages/QuizDetails";
@@ -24,10 +26,12 @@ const App = () => (
         <Toaster />
         <Sonner />
         <ThemeToggle />
-        <AuthButtons /> {/* <-- 2. ADD THIS BACK */}
+        <AuthButtons />
         <BrowserRouter>
+          <SignInRedirect />
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/create-quiz" element={<CreateQuiz />} />
             <Route path="/join" element={<JoinQuiz />} />
             <Route path="/quiz/:id" element={<QuizDetails />} />

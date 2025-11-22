@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as crons from "../crons.js";
 import type * as gameplay from "../gameplay.js";
 import type * as quizzes from "../quizzes.js";
 import type * as router from "../router.js";
@@ -20,6 +21,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  crons: typeof crons;
   gameplay: typeof gameplay;
   quizzes: typeof quizzes;
   router: typeof router;

@@ -33,25 +33,24 @@ export default function Dashboard() {
         </header>
         
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="flex flex-row w-full justify-end">
-            <Button variant="outline" onClick={() => navigate('/join')} className="text-primary hover:bg-primary/90 rounded-md border border-primary-foreground-30 mr-32 mt-5 p-5 px-7">
-                        Join Quiz
-                      </Button>
-          </div>
+         
     
 
             <div className="bg-muted/30 min-h-[100vh] flex-1 rounded-md md:min-h-min ">
             <div className="flex flex-row w-full justify-end">
-            <Button onClick={() => navigate('/create-quiz')} className="bg-primary text-primary-foreground hover:bg-background/80 hover:text-primary rounded-full border border-primary-foreground-30 mr-32 mt-5 p-5">
-                        <Plus className="h-4 w-4 mr-2" />
+              <Button variant="ghost" onClick={() => navigate('/join')} className="text-primary bg-primary-foreground hover:bg-primary/90  m-2 mt-5 p-5 px-2 sm:px-7 rounded-full">
+                        Join Quiz
+                      </Button>
+            <Button onClick={() => navigate('/create-quiz')} className="text-xs lg:text-sm bg-primary text-primary-foreground hover:bg-background/80 hover:text-primary rounded-full border border-secondary-foreground-30 m-2 mt-5 p-1 lg:p-5 ">
+                        <Plus className="h-4 w-4" />
                         Create Quiz
                       </Button>
           </div>
-            <div className="px-32 py-3 h-screen">
-            <div className="flex flex-row justify-between m-3 text-muted-foreground/70">
-              <p>Quiz details</p>
+            <div className="px-1 lg:px-32 py-3 h-screen">
+            <div className="flex flex-row justify-between m-3 text-muted-foreground/70 opacity-0 lg:opacity-100">
+              <p>Details</p>
               <p>Created</p>
-              <p>More actions</p>
+              <p>More</p>
             </div>
 
             <div className="flex flex-col gap-4 ">

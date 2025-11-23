@@ -154,10 +154,10 @@ const HostQuiz = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/5 p-2 ">
       <div className="container max-w-6xl mx-auto mt-20">
-        <Card className="p-4 mb-6">
-          <div className="flex justify-between items-center mb-6">
+        <Card className="p-10 mb-6">
+          <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold">{quiz?.title}</h1>
+              <h1 className="text-3xl font-bold mb-2 text-white/80">{quiz?.title}</h1>
               <p className="text-muted-foreground">Join Code: <span className="text-2xl font-bold text-primary">{session?.join_code}</span></p>
             </div>
             <div className="flex items-center gap-4">
@@ -269,11 +269,10 @@ const HostQuiz = () => {
           )}
 
           {session?.status === 'active' && session?.show_leaderboard && (
-            <div className="text-center py-12">
-              <DotLottieReact src="path/to/animation.lottie" loop autoplay
-              className="h-10 w-10 sm:h-12 sm:w-12 md:h-16 md:w-16 lg:h-20 lg:w-20 mx-auto mb-4 text-warning" />
-              <h2 className="text-3xl font-bold mb-8">Leaderboard</h2>
-              
+            <div className="text-center py-4">
+              <Trophy className="h-10 w-10 sm:h-12 sm:w-12 md:h-16 md:w-16 lg:h-20 lg:w-20 mx-auto mb-4 text-warning" />
+              <h2 className="text-3xl font-bold mb-6">Leaderboard</h2>
+          
               <div className="space-y-3 mb-8">
                 {participants?.map((p, i) => (
                   <div 
@@ -315,11 +314,13 @@ const HostQuiz = () => {
           )}
 
           {session?.status === 'finished' && (
-            <div className="text-center py-12">
-              <Trophy className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 mx-auto mb-4 text-warning" />
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl font-bold mb-2">Quiz Finished!</h2>
+            <div className="text-center py-2">
+               <DotLottieReact src="../../public/Trophy.lottie" autoplay
+              className="h-32 w-32 sm:h-32 sm:w-32 md:h-32 md:w-32 lg:h-40 lg:w-40 mx-auto" />
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl font-bold mb-8">Final Leaderboard!</h2>
               
-              <h3 className="text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl font-bold mb-4">Final Scores</h3>
+              
+
               <div className="space-y-3 mb-8">
                 {participants?.map((p, i) => (
                   <div 
@@ -337,9 +338,14 @@ const HostQuiz = () => {
                 ))}
               </div>
 
-              <Button onClick={() => navigate('/')} size="lg" className="rounded-full">
-                Back to Home
-              </Button>
+              <Button
+          variant="ghost"
+          onClick={() => navigate('/dashboard')}
+          className="my-3 rounded-full"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Button>
             </div>
           )}
         </Card>

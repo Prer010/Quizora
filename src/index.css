@@ -21,7 +21,7 @@ All colors MUST be HSL.
     --primary-foreground: 0 0% 7%;
     --primary-glow: 45 100% 60%;
 
-    --secondary: 45 85% 60%;
+    --secondary: 45, 89%, 71%;
     --secondary-foreground: 0 0% 7%;
 
     --muted: 0 0% 96%;
@@ -77,7 +77,7 @@ All colors MUST be HSL.
     --primary-foreground: 0 0% 7%;
     --primary-glow: 45 100% 60%;
 
-    --secondary: 45 85% 45%;
+    --secondary: 45, 86%, 70%;
     --secondary-foreground: 0 0% 7%;
 
     --muted: 0 0% 20%;

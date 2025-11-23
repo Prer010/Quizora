@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Trophy, Loader2, ArrowLeft } from "lucide-react";
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api"; 
 import { Id } from "../../convex/_generated/dataModel"; 
@@ -31,6 +32,7 @@ const PlayQuiz = () => {
   const submitAnswerMutation = useMutation(api.gameplay.submitAnswer);
 
   const session = sessionData?.session;
+  const quiz = sessionData?.quiz;
   const participant = sessionData?.participant;
   const allParticipants = sessionData?.allParticipants;
   const currentQuestion = sessionData?.currentQuestion;
@@ -150,11 +152,10 @@ const PlayQuiz = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-accent/10 pt-4 pb-4">
       <div className="container max-w-md sm:max-w-2xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mt-12">
-        <Card className="p-6 mb-6">
+        <Card className="p-4 mb-6">
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm text-muted-foreground">Welcome,</p>
-              <p className="text-xl font-bold">{participant?.name}</p>
+            <h1 className="text-3xl font-bold mb-2 text-white/80">{quiz?.title}</h1>
             </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">Your Score</p>
@@ -275,7 +276,11 @@ const PlayQuiz = () => {
           <Card className="p-8 text-center">
             <Trophy className="h-16 w-16 mx-auto mb-4 text-warning" />
             <h2 className="text-3xl font-bold mb-8">Current Standings</h2>
-            
+            <div className="mb-8">
+              <h4 className="text-xl text-white/90 font-semibold">Your Position - {}</h4>
+              <p className="text-sm text-white/70">Correct answers: {}</p>
+              <p className="text-sm text-white/70">Voting time: {}</p>
+              </div>
             <div className="space-y-3">
               {allParticipants?.map((p, i) => (
                 <div 
@@ -299,12 +304,15 @@ const PlayQuiz = () => {
         )}
 
         {session.status === 'finished' && (
-          <Card className="p-4 text-center">
-            <Trophy className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20  mx-auto mb-4 text-warning" />
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl  font-bold mb-1">Quiz Finished!</h2>
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl mb-8">Your final score: <span className="font-bold text-primary">{participant?.score || 0}</span></p>
-            
-            <h3 className="text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl font-bold mb-3">Final Rankings</h3>
+          <Card className="px-5 pb-8 text-center">
+            <DotLottieReact src="../../public/Trophy.lottie" autoplay
+            className="h-32 w-32 sm:h-32 sm:w-32 md:h-32 md:w-32 lg:h-40 lg:w-40  mx-auto" />
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl  font-bold mb-2">Final Leaderboard!</h2>
+            <div className="my-5">
+              <h4 className="text-xl font-semibold text-white/90">You finished {}!</h4>
+              <p className="text-sm text-white/70">Correct answers: {}</p>
+              <p className="text-sm text-white/70">Voting time: {}</p>
+              </div>
             <div className="space-y-3">
               {allParticipants?.map((p, i) => (
                 <div 
@@ -323,9 +331,14 @@ const PlayQuiz = () => {
                 </div>
               ))}
             </div>
-            <Button onClick={() => navigate('/')} size="lg" className="mt-8 rounded-full">
-              Back to Home
-            </Button>
+            <Button
+          variant="ghost"
+          onClick={() => navigate('/dashboard')}
+          className="my-3 mt-6 rounded-full"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Button>
           </Card>
         )}
       </div>

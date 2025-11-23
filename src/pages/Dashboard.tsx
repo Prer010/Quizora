@@ -48,7 +48,7 @@ export default function Dashboard() {
                       </Button>
           </div>
             <div className="px-32 py-3 h-screen">
-            <div className="flex flex-row justify-between m-5 text-muted-foreground/70">
+            <div className="flex flex-row justify-between m-3 text-muted-foreground/70">
               <p>Quiz details</p>
               <p>Created</p>
               <p>More actions</p>
@@ -66,7 +66,7 @@ export default function Dashboard() {
 
                            <div className="flex flex-row items-center text-muted-foreground">
                       <Clock className="h-3 w-3 mr-1" />
-                    <span>{formatDistanceToNow(new Date(q._creationTime))}</span>
+                    <span>{formatDistanceToNow(new Date(q._creationTime))} ago</span>
                       </div>
 
                       <DropdownMenu>

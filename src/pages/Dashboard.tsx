@@ -38,7 +38,7 @@ export default function Dashboard() {
 
             <div className="bg-muted/30 min-h-[100vh] flex-1 rounded-md md:min-h-min ">
             <div className="flex flex-row w-full justify-end">
-              <Button variant="ghost" onClick={() => navigate('/join')} className="text-primary bg-primary-foreground hover:bg-primary/90  m-2 mt-5 p-5 px-2 sm:px-7 rounded-full">
+              <Button variant="ghost" onClick={() => navigate('/join')} className="hover:bg-gradient-to-r from-primary to-secondary rounded-full m-1 mt-5 px-4">
                         Join Quiz
                       </Button>
             <Button onClick={() => navigate('/create-quiz')} className="text-xs lg:text-sm bg-primary text-primary-foreground hover:bg-background/80 hover:text-primary rounded-full border border-secondary-foreground-30 m-2 mt-5 p-1 lg:p-5 ">

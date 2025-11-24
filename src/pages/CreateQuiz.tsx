@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Image as ImageIcon, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Image as ImageIcon, ArrowLeft, Settings } from "lucide-react";
 import { useMutation } from "convex/react"; 
 import { api } from "../../convex/_generated/api"; 
 
@@ -35,6 +35,9 @@ const CreateQuiz = () => {
       order_number: 0
     }
   ]);
+  const [timeForAll, setTimeForAll] = useState(30); // New state for uniform time setting
+  const [showSettings, setShowSettings] = useState(false);
+  const [applyDefaultTime, setApplyDefaultTime] = useState(false);
 
   const createQuizMutation = useMutation(api.quizzes.createQuiz);
 
@@ -64,12 +67,12 @@ const CreateQuiz = () => {
         question_image_url: "",
         options: ["", ""],
         correct_answer: "A",
-        time_limit: 30,
+        time_limit: applyDefaultTime ? timeForAll : 30,
         order_number: questions.length,
       },
     ]);
   };
-
+  
   const removeQuestion = (index: number) => {
     if (questions.length > 1) {
       setQuestions(questions.filter((_, i) => i !== index));
@@ -116,6 +119,21 @@ const CreateQuiz = () => {
     if (!letters.includes(correct)) correct = letters[0] || "A";
     updated[qIndex] = { ...updated[qIndex], options: opts, correct_answer: correct };
     setQuestions(updated);
+  };
+
+  const applyTimeToAll = () => {
+    setQuestions(questions.map(q => ({ ...q, time_limit: timeForAll })));
+    toast({ title: "Success", description: `Time limit set to ${timeForAll} seconds for all questions.` });
+  };
+
+  const saveDraft = () => {
+    try {
+      const draft = { title, description, questions, timeForAll, applyDefaultTime };
+      localStorage.setItem("quiz_draft", JSON.stringify(draft));
+      toast({ title: "Saved", description: "Quiz saved to drafts" });
+    } catch (e: any) {
+      toast({ title: "Error", description: `Failed to save draft: ${e.message}`, variant: "destructive" });
+    }
   };
 
   const createQuiz = async () => {
@@ -218,148 +236,212 @@ const CreateQuiz = () => {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Questions</h2>
-            </div>
+          <div className="space-y-6 px-5">
+            <div className="relative">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold">Questions</h2>
+                <Button
+                  variant="link"
+                  onClick={() => setShowSettings((s) => !s)}
+                  className="rounded-full"
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </div>
 
-            {questions.map((question, index) => (
-              <Card key={index} className="p-6 border-2">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-semibold">Question {index + 1}</h3>
-                  {questions.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeQuestion(index)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <Label>Question Text *</Label>
-                    <Textarea
-                      value={question.question_text}
-                      onChange={(e) => updateQuestion(index, 'question_text', e.target.value)}
-                      placeholder="Enter your question"
-                      className="mt-2"
-                    />
+              {showSettings && (
+                <Card className="absolute right-0 mt-2 w-80 p-4 z-20">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-sm font-semibold">Quiz Settings</h3>
+                    <Button variant="ghost" size="sm" onClick={() => setShowSettings(false)}>Close</Button>
                   </div>
 
-                  <div>
-                    <Label>Image URL (optional)</Label>
-                    <div className="flex gap-2 mt-2">
-                      <ImageIcon className="text-muted-foreground mt-2" />
-                      <Input
-                        value={question.question_image_url}
-                        onChange={(e) => updateQuestion(index, 'question_image_url', e.target.value)}
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {question.options.map((opt, optIndex) => {
-                      const letter = String.fromCharCode(65 + optIndex); // A, B, C...
-                      return (
-                        <div key={optIndex} className="flex items-start gap-3">
-                          <div className="w-full">
-                            <Label>{`Option ${letter}${optIndex < 2 ? ' *' : ''}`}</Label>
-                            <Input
-                              value={opt}
-                              onChange={(e) => updateOption(index, optIndex, e.target.value)}
-                              placeholder={`Option ${letter}`}
-                              className="mt-2"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            {/* spacer for layout - option text already inline */}
-                          </div>
-                          <div className="mt-6">
-                            {question.options.length > 2 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeOption(index, optIndex)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    <div className="pt-2">
-                      <Button 
-                        onClick={() => addOption(index)} 
-                        size="sm" 
-                        className="rounded-full"
-                        disabled={question.options.length >= 4} // Disable adding more than 4 options
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Option
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <Label>Correct Answer *</Label>
+                  <div className="mb-3">
+                    <Label>Default Time Limit</Label>
+                    <div className="flex items-center gap-2 mt-2">
                       <select
-                        value={question.correct_answer}
-                        onChange={(e) => updateQuestion(index, 'correct_answer', e.target.value)}
-                        className="w-full mt-2 p-2 border rounded-md pr-3"
-                      >
-                        {question.options.map((_, i) => {
-                          const letter = String.fromCharCode(65 + i);
-                          return (
-                            <option key={i} value={letter}>{letter}</option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                    <div className="flex-1">
-                      <Label>Time Limit *</Label>
-                      <select
-                        value={question.time_limit}
-                        onChange={(e) => updateQuestion(index, 'time_limit', parseInt(e.target.value))}
-                        className="w-full mt-2 p-2 border rounded-md pr-3"
+                        value={timeForAll}
+                        onChange={(e) => {
+                          const v = parseInt(e.target.value);
+                          setTimeForAll(v);
+                          if (applyDefaultTime) {
+                            setQuestions(prev => prev.map(q => ({ ...q, time_limit: v })));
+                          }
+                        }}
+                        className="flex-1 p-2 border rounded-md"
                       >
                         {TIME_OPTIONS.map((opt) => (
                           <option key={opt.value} value={opt.value}>{opt.label}</option>
                         ))}
                       </select>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-          <div className="flex justify-end mt-5">
-            <Button onClick={addQuestion} className="rounded-full bg-gradient-to-r from-primary to-secondary p-3 mr-5">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Question
-            </Button>
-          </div>
 
-          <div className="w-23 mt-8 flex gap-4">
-            <Button
-              onClick={createQuiz}
-              disabled={loading}
-              size="lg"
-              className=" flex-1 bg-gradient-to-t from-primary via-secondary to-primary-glow hover:opacity-90"
-            >
-              {loading ? "Creating..." : "Create Quiz"}
-            </Button>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
+                      <label className="flex items-center gap-2 ml-2">
+                        <input
+                          type="checkbox"
+                          checked={applyDefaultTime}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setApplyDefaultTime(checked);
+                            if (checked) {
+                              applyTimeToAll();
+                            }
+                          }}
+                        />
+                        <span className="text-sm">Apply to All</span>
+                      </label>
+                    </div>
+
+                   
+                  </div>
+
+                  <div className="border-t pt-3 flex justify-between">
+                     <Button size="sm" onClick={() => { applyTimeToAll(); setApplyDefaultTime(true); }} className="px-4 py-1">
+                        Save
+                      </Button>
+                    <Button variant="link" size="sm" onClick={saveDraft}>Save to Drafts</Button>
+                  </div>
+                </Card>
+              )}
+            </div>
+
+             {questions.map((question, index) => (
+               <Card key={index} className="p-6 border-2">
+                 <div className="flex justify-between items-start mb-4">
+                   <h3 className="text-lg font-semibold">Question {index + 1}</h3>
+                   {questions.length > 1 && (
+                     <Button
+                       variant="ghost"
+                       size="sm"
+                       onClick={() => removeQuestion(index)}
+                     >
+                       <Trash2 className="h-4 w-4 text-destructive" />
+                     </Button>
+                   )}
+                 </div>
+ 
+                 <div className="space-y-4">
+                   <div>
+                     <Label>Question Text *</Label>
+                     <Textarea
+                       value={question.question_text}
+                       onChange={(e) => updateQuestion(index, 'question_text', e.target.value)}
+                       placeholder="Enter your question"
+                       className="mt-2"
+                     />
+                   </div>
+ 
+                   <div>
+                     <Label>Image URL (optional)</Label>
+                     <div className="flex gap-2 mt-2">
+                       <ImageIcon className="text-muted-foreground mt-2" />
+                       <Input
+                         value={question.question_image_url}
+                         onChange={(e) => updateQuestion(index, 'question_image_url', e.target.value)}
+                         placeholder="https://example.com/image.jpg"
+                       />
+                     </div>
+                   </div>
+ 
+                   <div className="space-y-3">
+                     {question.options.map((opt, optIndex) => {
+                       const letter = String.fromCharCode(65 + optIndex); // A, B, C...
+                       return (
+                         <div key={optIndex} className="flex items-start gap-3">
+                           <div className="w-full">
+                             <Label>{`Option ${letter}${optIndex < 2 ? ' *' : ''}`}</Label>
+                             <Input
+                               value={opt}
+                               onChange={(e) => updateOption(index, optIndex, e.target.value)}
+                               placeholder={`Option ${letter}`}
+                               className="mt-2"
+                             />
+                           </div>
+                           <div className="flex-1">
+                             {/* spacer for layout - option text already inline */}
+                           </div>
+                           <div className="mt-6">
+                             {question.options.length > 2 && (
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 onClick={() => removeOption(index, optIndex)}
+                               >
+                                 <Trash2 className="h-4 w-4 text-destructive" />
+                               </Button>
+                             )}
+                           </div>
+                         </div>
+                       );
+                     })}
+ 
+                     <div className="pt-2">
+                       <Button 
+                       variant="ghost"
+                         onClick={() => addOption(index)} 
+                         size="sm" 
+                         className="rounded-full"
+                         disabled={question.options.length >= 4} // Disable adding more than 4 options
+                       >
+                         <Plus className="h-4 w-4 mr-2" />
+                         Add Option
+                       </Button>
+                     </div>
+                   </div>
+ 
+                   <div className="flex gap-4">
+                     <div className="flex-1">
+                       <Label>Correct Answer *</Label>
+                       <select
+                         value={question.correct_answer}
+                         onChange={(e) => updateQuestion(index, 'correct_answer', e.target.value)}
+                         className="w-full mt-2 p-2 border rounded-md pr-3"
+                       >
+                         {question.options.map((_, i) => {
+                           const letter = String.fromCharCode(65 + i);
+                           return (
+                             <option key={i} value={letter}>{letter}</option>
+                           );
+                         })}
+                       </select>
+                     </div>
+                     <div className="flex-1">
+                       <Label>Time Limit *</Label>
+                       <select
+                         value={question.time_limit}
+                         onChange={(e) => updateQuestion(index, 'time_limit', parseInt(e.target.value))}
+                         className="w-full mt-2 p-2 border rounded-md pr-3"
+                       >
+                         {TIME_OPTIONS.map((opt) => (
+                           <option key={opt.value} value={opt.value}>{opt.label}</option>
+                         ))}
+                       </select>
+                     </div>
+                   </div>
+                 </div>
+               </Card>
+             ))}
+           </div>
+           <div className="flex justify-end mt-5">
+             <Button variant="ghost" onClick={addQuestion} className="rounded-full p-3 mr-5">
+               <Plus className="h-4 w-4 mr-2" />
+               Add Question
+             </Button>
+           </div>
+
+           <div className="w-23 mt-8 flex gap-4">
+             <Button
+               onClick={createQuiz}
+               disabled={loading}
+               size="lg"
+               className=" flex-1 bg-gradient-to-t from-primary via-secondary to-primary-glow hover:opacity-90"
+             >
+               {loading ? "Creating..." : "Create Quiz"}
+             </Button>
+           </div>
+         </Card>
+       </div>
+     </div>
+   );
 };
 
 export default CreateQuiz;

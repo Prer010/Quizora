@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Play, Copy, CheckCircle, Loader2 } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
+import { useAuth } from "@clerk/clerk-react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 
@@ -14,6 +15,7 @@ const QuizDetails = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { isLoaded, isSignedIn } = useAuth();
 
   // Fetch quiz data, casting the 'id' string to Id<"quizzes">
   const quizData = useQuery(
@@ -28,6 +30,26 @@ const QuizDetails = () => {
 
   const startQuiz = async () => {
     if (!id) return;
+
+    // Check if auth is loaded
+    if (!isLoaded) {
+      toast({ 
+        title: "Loading...", 
+        description: "Please wait while we verify your authentication" 
+      });
+      return;
+    }
+
+    // Check if user is signed in
+    if (!isSignedIn) {
+      toast({ 
+        title: "Authentication Required", 
+        description: "Please sign in to host a quiz", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       // Call the mutation, casting the 'id' string
@@ -38,7 +60,27 @@ const QuizDetails = () => {
       // Navigate to the host page
       navigate(`/host/${sessionId}`);
     } catch (error: any) {
-      toast({ title: "Error", description: `Failed to start quiz: ${error.message}`, variant: "destructive" });
+      const errorMessage = error?.message || "Unknown error occurred";
+      
+      if (errorMessage.includes("logged in")) {
+        toast({ 
+          title: "Authentication Error", 
+          description: "Please sign out and sign back in, then try again", 
+          variant: "destructive" 
+        });
+      } else if (errorMessage.includes("not authorized")) {
+        toast({ 
+          title: "Not Authorized", 
+          description: "You can only host quizzes you created", 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ 
+          title: "Error", 
+          description: `Failed to start quiz: ${errorMessage}`, 
+          variant: "destructive" 
+        });
+      }
     } finally {
       setLoading(false);
     }

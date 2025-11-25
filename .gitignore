@@ -1,6 +1,12 @@
 #env files
 .env
 
+# Documentation files
+PERFORMANCE_IMPROVEMENTS.md
+MIGRATION_CHECKLIST.md
+TROUBLESHOOTING.md
+FIX_AUTH_ERROR.md
+
 # Logs
 logs
 *.log

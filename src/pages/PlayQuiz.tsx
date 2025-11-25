@@ -282,9 +282,9 @@ const PlayQuiz = () => {
             <Trophy className="h-16 w-16 mx-auto mb-4 text-warning" />
             <h2 className="text-3xl font-bold mb-8">Current Standings</h2>
             <div className="mb-8">
-              <h4 className="text-xl text-white/90 font-semibold">Your Position - {rankText}</h4>
-              <p className="text-sm text-white/70">Correct answers: {participant?.score || 0}</p>
-              <p className="text-sm text-white/70">Voting time: {lastTimeText}</p>
+              <h4 className="text-xl text-foreground font-semibold">Your Position - {rankText}</h4>
+              <p className="text-sm text-muted-foreground">Correct answers: {participant?.score || 0}</p>
+              <p className="text-sm text-muted-foreground">Voting time: {lastTimeText}</p>
             </div>
             <div className="space-y-3">
               {allParticipants?.map((p, i) => (
@@ -313,9 +313,9 @@ const PlayQuiz = () => {
               className="h-32 w-32 sm:h-32 sm:w-32 md:h-32 md:w-32 lg:h-40 lg:w-40  mx-auto" />
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl  font-bold mb-2">Final Leaderboard!</h2>
             <div className="my-5">
-              <h4 className="text-xl font-semibold text-white/90">You finished {rankText}!</h4>
-              <p className="text-sm text-white/70">Correct answers: {participant?.score || 0}</p>
-              <p className="text-sm text-white/70">Voting time: {lastTimeText}</p>
+              <h4 className="text-xl font-semibold text-foreground">You finished {rankText}!</h4>
+              <p className="text-sm text-muted-foreground">Correct answers: {participant?.score || 0}</p>
+              <p className="text-sm text-muted-foreground">Voting time: {lastTimeText}</p>
             </div>
             <div className="space-y-3">
               {allParticipants?.map((p, i) => (

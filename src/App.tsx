@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AuthButtons } from "@/components/AuthButtons";
 import { SignInRedirect } from "@/components/SignInRedirect";
+import { useUserSync } from "@/hooks/useUserSync";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CreateQuiz from "./pages/CreateQuiz";
@@ -16,9 +17,32 @@ import QuizDetails from "./pages/QuizDetails";
 import HostQuiz from "./pages/HostQuiz";
 import PlayQuiz from "./pages/PlayQuiz";
 import NotFound from "./pages/NotFound";
-import { StateDemo } from "./components/StateDemo";
 
 const queryClient = new QueryClient();
+
+const AppContent = () => {
+  useUserSync(); // Sync user data with Convex on mount and auth changes
+  
+  return (
+    <>
+      <ThemeToggle />
+      <AuthButtons />
+      <BrowserRouter future={{ v7_relativeSplatPath: true }}>
+        <SignInRedirect />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/create-quiz" element={<CreateQuiz />} />
+          <Route path="/join" element={<JoinQuiz />} />
+          <Route path="/quiz/:id" element={<QuizDetails />} />
+          <Route path="/host/:sessionId" element={<HostQuiz />} />
+          <Route path="/play/:sessionId" element={<PlayQuiz />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -26,22 +50,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <ThemeToggle />
-        <AuthButtons />
-        <BrowserRouter future={{ v7_relativeSplatPath: true }}>
-          <SignInRedirect />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/create-quiz" element={<CreateQuiz />} />
-            <Route path="/join" element={<JoinQuiz />} />
-            <Route path="/quiz/:id" element={<QuizDetails />} />
-            <Route path="/host/:sessionId" element={<HostQuiz />} />
-            <Route path="/play/:sessionId" element={<PlayQuiz />} />
-            <Route path="/demo" element={<StateDemo />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AppContent />
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>

@@ -7,13 +7,10 @@ const GRACE_PERIOD_MS = 5000;
 const checkHost = async (ctx: any, sessionId: any) => {
   const [session, identity] = await Promise.all([
     ctx.db.get(sessionId),
-    ctx.auth.getUserIdentity()
+    ctx.auth.getUserIdentity(),
   ]);
 
-  if (!session) {
-    throw new Error("Session not found.");
-  }
-
+  if (!session) throw new Error("Session not found.");
   if (session.hostId !== identity?.subject) {
     throw new Error("You are not authorized to perform this action.");
   }
@@ -125,53 +122,43 @@ export const submitAnswer = mutation({
   handler: async (ctx, args) => {
     const { participantId, questionId, sessionId, answer, time_taken } = args;
 
-    const session = await ctx.db.get(sessionId);
+    const [session, existingAnswer, question, participant] = await Promise.all([
+      ctx.db.get(sessionId),
+      ctx.db
+        .query("answers")
+        .withIndex("by_participant_question", (q) =>
+          q.eq("participantId", participantId).eq("questionId", questionId)
+        )
+        .first(),
+      ctx.db.get(questionId),
+      ctx.db.get(participantId),
+    ]);
+
     if (!session) throw new Error("Session not found.");
+    if (existingAnswer) return; // Already answered
+    if (!question) throw new Error("Question not found");
+    if (!participant) throw new Error("Participant not found");
 
     const isLate = session.currentQuestionEndTime
       ? Date.now() > (session.currentQuestionEndTime + GRACE_PERIOD_MS)
       : false;
 
-    // 1. Check if already answered
-    const existingAnswer = await ctx.db
-      .query("answers")
-      .withIndex("by_participant_question", (q) =>
-        q.eq("participantId", participantId).eq("questionId", questionId)
-      )
-      .first();
-
-    if (existingAnswer) {
-      return;
-    }
-
-    // 2. Get question details to check answer and score
-    const question = await ctx.db.get(questionId);
-    if (!question) {
-      throw new Error("Question not found");
-    }
-
-    // 3. Calculate score
-    // If they are late, the answer is incorrect, regardless of what they submitted.
     const is_correct = !isLate && question.correct_answer === answer;
-    let score = is_correct ? 1 : 0;
+    const score = is_correct ? 1 : 0;
 
-    // 4. Save the answer
-    await ctx.db.insert("answers", {
-      sessionId,
-      participantId,
-      questionId,
-      answer,
-      is_correct,
-      score,
-      time_taken,
-    });
-
-    // 5. Update the participant's total score
-    const participant = await ctx.db.get(participantId);
-    if (participant) {
-      await ctx.db.patch(participantId, {
+    await Promise.all([
+      ctx.db.insert("answers", {
+        sessionId,
+        participantId,
+        questionId,
+        answer,
+        is_correct,
+        score,
+        time_taken,
+      }),
+      ctx.db.patch(participantId, {
         score: participant.score + score,
-      });
-    }
+      }),
+    ]);
   },
 });

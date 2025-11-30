@@ -246,7 +246,7 @@ const CreateQuiz = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-t from-zinc-200/80 via-zinc-200/80 to-zinc-200/80 dark:bg-gradient-to-b dark:from-black/80 dark:via-black/80 dark:to-black/80 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-zinc-200/30 via-zinc-200/80 to-zinc-200/80 dark:bg-gradient-to-b dark:from-black/80 dark:via-black/80 dark:to-black/80 py-8">
       <div className="container max-w-4xl mx-auto px-4">
         <Button
           variant="ghost"
@@ -431,7 +431,7 @@ const CreateQuiz = () => {
                         variant="ghost"
                         onClick={() => addOption(index)}
                         size="sm"
-                        className="rounded-full dark:hover:bg-primary-foreground dark:hover:text-white/70 dark:text-orange-200 bg-gray-100 dark:bg-muted"
+                        className="rounded-full dark:hover:bg-muted dark:hover:text-white/70 dark:text-orange-200 "
                         disabled={question.options.length >= 4} // Disable adding more than 4 options
                       >
                         <Plus className="h-4 w-4" />
@@ -477,7 +477,7 @@ const CreateQuiz = () => {
            <div className="flex flex-col lg:flex-row justify-between">
 
             <div className="mt-5">
-              <Button variant="ghost" onClick={addQuestion} className="rounded-full p-2 bg-gray-100 dark:hover:bg-primary-foreground dark:hover:text-white/70 dark:text-secondar dark:bg-muted dark:text-orange-200">
+              <Button variant="ghost" onClick={addQuestion} className="rounded-full p-2  dark:hover:bg-muted dark:hover:text-white/70 dark:text-secondar  dark:text-orange-200">
                 <Plus className="h-4 w-4" />
                 Add Question
               </Button>
@@ -487,7 +487,7 @@ const CreateQuiz = () => {
                 onClick={handleSave}
                 disabled={loading}
                 size="lg"
-                className="text-lg bg-gradient-to-b from-primary via-secondary to-accent hover:opacity-90 rounded-full hover:text-primary-foreground"
+                className="text-lg bg-gradient-to-b from-primary via-secondary to-accent hover:opacity-90 rounded-xl hover:text-primary-foreground"
               >
                 {loading ? "Saving..." : (quizIdParam ? "Update Quiz" : "Create Quiz")}
               </Button>

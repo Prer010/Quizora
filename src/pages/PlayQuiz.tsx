@@ -166,14 +166,25 @@ const PlayQuiz = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-200/30 via-zinc-200/80 to-zinc-200/80 dark:bg-gradient-to-b dark:from-black/80 dark:via-black/80 dark:to-black/80 pt-4 pb-4 ">
       <div className="container max-w-md sm:max-w-2xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mt-12">
-        <Card className="p-1 mb-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold mb-2 dark:text-white/80">{quiz?.title}</h1>
+        <Card className="px-3 sm:px-4 md:px-5 lg:px-6 py-1.5 sm:py-2 md:py-2.5 lg:py-3 mb-6">
+          <div className="flex justify-between items-center gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 dark:text-white/80 truncate">{quiz?.title}</h1>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Your Score</p>
-              <p className="text-xl font-bold text-secondary">{participant?.score || 0}</p>
+            <div className="flex items-center gap-3 sm:gap-4">
+              {session?.status === 'finished' && (
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/dashboard')}
+                  className="px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base md:px-5 md:py-3 md:text-sm rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
+                >
+                  Back to Home
+                </Button>
+              )}
+              <div className="text-right flex-shrink-0">
+                <p className="text-xs sm:text-sm text-muted-foreground">Your Score</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-secondary">{participant?.score || 0}</p>
+              </div>
             </div>
           </div>
         </Card>
@@ -339,14 +350,7 @@ const PlayQuiz = () => {
                 </div>
               ))}
             </div>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/dashboard')}
-              className="my-3 mt-6 rounded-full dark:text-zinc-400 hover:dark:text-black"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Button>
+
           </Card>
         )}
       </div>

@@ -153,13 +153,33 @@ const HostQuiz = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-200/30 via-zinc-200/80 to-zinc-200/80 dark:bg-gradient-to-b dark:from-black/80 dark:via-black/80 dark:to-black/80 p-2 ">
       <div className="container max-w-6xl mx-auto mt-20">
-        <Card className="p-2 mb-6">
+        <Card className="px-3 sm:px-4 md:px-5 lg:px-6 py-1.5 sm:py-2 md:py-2.5 lg:py-3 mb-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold mb-2 dark:text-white/80">{quiz?.title}</h1>
               <p className="text-muted-foreground">Join Code: <span className="sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-orange-300">{session?.join_code}</span></p>
             </div>
             <div className="flex items-center gap-4">
+              {session?.status === 'active' && session?.show_leaderboard && (
+                <Button
+                  onClick={nextQuestion}
+                  size="sm"
+                  variant="ghost"
+                  className="px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base md:px-5 md:py-3 md:text-md rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
+                >
+                  Next Question
+                </Button>
+              )}
+              {session?.status === 'finished' && (
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/dashboard')}
+                  className="px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base md:px-5 md:py-3 md:text-md rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Home
+                </Button>
+              )}
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-muted-foreground" />
                 <span className="font-bold">{participants?.length || 0}</span>
@@ -293,15 +313,7 @@ const HostQuiz = () => {
                 ))}
               </div>
 
-              <div className="flex justify-end">
-                <Button
-                  onClick={nextQuestion}
-                  size="lg"
-                  className="bg-gradient-to-r from-primary to-secondary rounded-full p-3 sm:p-3 md:p-4 font-bold"
-                >
-                  Next Question
-                </Button>
-              </div>
+
             </div>
           )}
 
@@ -328,14 +340,7 @@ const HostQuiz = () => {
                 ))}
               </div>
 
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/dashboard')}
-                className="my-3 rounded-full dark:text-zinc-400 hover:dark:text-black"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Home
-              </Button>
+
             </div>
           )}
         </Card>

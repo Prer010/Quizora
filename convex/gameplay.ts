@@ -52,8 +52,27 @@ export const showLeaderboard = mutation({
     sessionId: v.id("quiz_sessions"),
   },
   handler: async (ctx, args) => {
-    await checkHost(ctx, args.sessionId);
-    await ctx.db.patch(args.sessionId, { show_leaderboard: true });
+    const session = await checkHost(ctx, args.sessionId);
+
+    // Get all questions to check if this is the last one
+    const questions = await ctx.db
+      .query("questions")
+      .withIndex("by_quizId_order", (q) => q.eq("quizId", session.quizId))
+      .order("asc")
+      .collect();
+
+    // If we're on the last question, go directly to finished state
+    if (session.current_question_index === questions.length - 1) {
+      await ctx.db.patch(args.sessionId, {
+        status: "finished",
+        show_leaderboard: false,
+        currentQuestionStartTime: undefined,
+        currentQuestionEndTime: undefined,
+      });
+    } else {
+      // Otherwise, show intermediate leaderboard
+      await ctx.db.patch(args.sessionId, { show_leaderboard: true });
+    }
   },
 });
 

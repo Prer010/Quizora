@@ -135,6 +135,21 @@ export const setRevealAnswer = mutation({
   },
 });
 
+// Admin: End the quiz prematurely
+export const endQuiz = mutation({
+  args: {
+    sessionId: v.id("quiz_sessions"),
+  },
+  handler: async (ctx, args) => {
+    await checkHost(ctx, args.sessionId);
+    await ctx.db.patch(args.sessionId, {
+      status: "finished",
+      show_leaderboard: false,
+      currentQuestionStartTime: undefined,
+      currentQuestionEndTime: undefined,
+    });
+  },
+});
 
 
 
@@ -178,7 +193,7 @@ export const submitAnswer = mutation({
     // Check if submission is within time limit using client timestamp
     const questionStartTime = session.currentQuestionStartTime || Date.now();
     const actualTimeTaken = (client_timestamp - questionStartTime) / 1000;
-    
+
     const isLate = session.currentQuestionEndTime
       ? client_timestamp > (session.currentQuestionEndTime + GRACE_PERIOD_MS)
       : false;
@@ -192,6 +207,10 @@ export const submitAnswer = mutation({
       question.time_limit + (GRACE_PERIOD_MS / 1000)
     );
 
+    // Calculate remaining time (higher is better - answered faster)
+    // This will be stored in time_taken field but semantically represents remaining time
+    const timeRemaining = Math.max(0, question.time_limit - validatedTimeTaken);
+
     // Insert answer and update score atomically
     await Promise.all([
       ctx.db.insert("answers", {
@@ -201,7 +220,7 @@ export const submitAnswer = mutation({
         answer,
         is_correct,
         score,
-        time_taken: validatedTimeTaken,
+        time_taken: timeRemaining,  // Now stores remaining time, not time taken
       }),
       ctx.db.patch(participantId, {
         score: participant.score + score,

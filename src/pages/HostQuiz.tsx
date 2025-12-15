@@ -95,6 +95,7 @@ const HostQuiz = () => {
   const showLeaderboardMutation = useMutation(api.gameplay.showLeaderboard);
   const setRevealAnswerMutation = useMutation(api.gameplay.setRevealAnswer);
   const nextQuestionMutation = useMutation(api.gameplay.nextQuestion);
+  const endQuizMutation = useMutation(api.gameplay.endQuiz);
 
   const startQuiz = async () => {
     if (!sessionId) return;
@@ -129,6 +130,16 @@ const HostQuiz = () => {
 
   const skipLeaderboard = () => {
     nextQuestion();
+  };
+
+  const endQuiz = async () => {
+    if (!sessionId) return;
+    try {
+      await endQuizMutation({ sessionId: sessionId as Id<"quiz_sessions"> });
+      navigate(`/quiz/${session?.quizId}`);
+    } catch (error: any) {
+      toast({ title: "Error ending quiz", description: error.message, variant: "destructive" });
+    }
   };
 
   if (sessionData === undefined) {
@@ -169,14 +180,24 @@ const HostQuiz = () => {
             </div>
             <div className="flex items-center gap-4">
               {session?.status === 'active' && session?.show_leaderboard && (
-                <Button
-                  onClick={nextQuestion}
-                  size="sm"
-                  variant="ghost"
-                  className="px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base md:px-5 md:py-3 md:text-md rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
-                >
-                  Next Question
-                </Button>
+                <div className="flex items-center">
+                  <Button
+                    onClick={endQuiz}
+                    size="sm"
+                    variant="ghost"
+                    className="px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base md:px-5 md:py-3 md:text-md rounded-full hover:bg-muted/70 text-red-400 hover:text-white/70 opacity-70"
+                  >
+                    End Quiz
+                  </Button>
+                  <Button
+                    onClick={nextQuestion}
+                    size="sm"
+                    variant="ghost"
+                    className="px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base md:px-5 md:py-3 md:text-md rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
+                  >
+                    Next Question
+                  </Button>
+                </div>
               )}
               {session?.status === 'finished' && (
                 <Button
@@ -369,17 +390,20 @@ const HostQuiz = () => {
                 {participants?.map((p, i) => (
                   <div
                     key={p._id}
-                    className={`flex justify-between items-center p-2 sm:p-3 md:p-4 rounded-lg ${i === 0 ? 'bg-warning/20 border-2 border-warning' :
-                      i === 1 ? 'bg-muted border-2' :
-                        i === 2 ? 'bg-muted border' :
+                    className={`flex justify-between items-center p-2 sm:p-3 md:p-4 rounded-lg ${i === 0 ? 'bg-warning/15 border border-warning' :
+                      i === 1 ? 'bg-slate-300/15 dark:bg-slate-600/15 border border-slate-300 dark:border-slate-600' :
+                        i === 2 ? 'bg-amber-300/10 dark:bg-amber-700/10 border border-amber-400 dark:border-amber-700' :
                           'bg-muted/50'
                       }`}
                   >
-                    <div className="flex items-center gap-3 text-base sm:text-lg md:text-xl">
-                      <span className="font-bold">{i + 1}</span>
+                    <div className="flex items-center gap-5 text-base sm:text-lg md:text-xl">
+                      <span className="ml-2 font-bold">{i + 1}</span>
                       <span className="font-semibold">{p.name}</span>
                     </div>
-                    <span className="text-xl font-bold text-orange-300">{p.score}</span>
+                    <div className="flex items-center gap-8">
+                      <span className="text-xl font-bold text-orange-300">{p.score}</span>
+                      <span className="mr-2 text-sm text-muted-foreground">{(p as any).total_time ? `${(p as any).total_time.toFixed(1)}s` : '-'}</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -399,14 +423,20 @@ const HostQuiz = () => {
                 {participants?.map((p, i) => (
                   <div
                     key={p._id}
-                    className={`flex justify-between items-center p-2 rounded-lg ${i === 0 ? 'bg-warning/20 border-2 border-warning' : 'bg-muted'
+                    className={`flex justify-between items-center p-2 rounded-lg ${i === 0 ? 'bg-warning/15 border border-warning' :
+                      i === 1 ? 'bg-slate-300/15 dark:bg-slate-600/15 border border-slate-300 dark:border-slate-600' :
+                        i === 2 ? 'bg-amber-300/10 dark:bg-amber-700/10 border border-amber-400 dark:border-amber-700' :
+                          'bg-muted'
                       }`}
                   >
-                    <div className="flex items-center gap-3 dark:text-zinc-200 text-base sm:text-lg md:text-xl">
-                      <span className="font-bold">{i + 1}</span>
+                    <div className="flex items-center gap-5 dark:text-zinc-200 text-base sm:text-lg md:text-xl">
+                      <span className="ml-2 font-bold">{i + 1}</span>
                       <span className="font-semibold">{p.name}</span>
                     </div>
-                    <span className=" ml-1 text-xl font-bold text-orange-300">{p.score}</span>
+                    <div className="flex items-center gap-8">
+                      <span className="text-xl font-bold text-orange-300">{p.score}</span>
+                      <span className="mr-2 text-sm text-muted-foreground">{(p as any).total_time ? `${(p as any).total_time.toFixed(1)}s` : '-'}</span>
+                    </div>
                   </div>
                 ))}
               </div>

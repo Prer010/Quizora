@@ -10,6 +10,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import { Progress } from "@chakra-ui/react";
+import { useAuth } from "@clerk/clerk-react";
 
 const PlayQuiz = () => {
   const { sessionId } = useParams();
@@ -17,6 +18,7 @@ const PlayQuiz = () => {
   const participantId = searchParams.get('participant');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isSignedIn } = useAuth();
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
@@ -62,7 +64,7 @@ const PlayQuiz = () => {
       return;
     }
 
-    if (session.status === 'active' && !session.show_leaderboard && session.currentQuestionEndTime && !hasAnswered) {
+    if (session.status === 'active' && !session.show_leaderboard && session.currentQuestionEndTime) {
       const updateTimer = () => {
         const now = Date.now();
         const remainingMs = session.currentQuestionEndTime! - now;
@@ -85,9 +87,6 @@ const PlayQuiz = () => {
       const timer = setInterval(updateTimer, 100);
       return () => clearInterval(timer);
 
-    } else if (hasAnswered) {
-      setTimeLeft(0);
-      setProgressPercent(0);
     } else if (session.status === 'waiting' && currentQuestion) {
       setTimeLeft(currentQuestion.time_limit);
       setProgressPercent(100);
@@ -97,7 +96,6 @@ const PlayQuiz = () => {
     session?.status,
     session?.show_leaderboard,
     session?.currentQuestionEndTime,
-    hasAnswered,
     currentQuestion?.time_limit,
     timeUpNotified,
     toast,
@@ -112,12 +110,20 @@ const PlayQuiz = () => {
   const submitAnswer = async () => {
     if (hasAnswered || !selectedAnswer || !currentQuestion || !sessionId || !participantId) return;
 
+    // Validate session data before submission
+    if (!session?.currentQuestionStartTime) {
+      toast({
+        title: "Error",
+        description: "Unable to submit answer. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Capture the exact moment of submission
     const client_timestamp = Date.now();
 
-    const time_taken = session.currentQuestionStartTime
-      ? (client_timestamp - session.currentQuestionStartTime) / 1000
-      : currentQuestion.time_limit;
+    const time_taken = (client_timestamp - session.currentQuestionStartTime) / 1000;
 
     try {
       const result = await submitAnswerMutation({
@@ -184,6 +190,9 @@ const PlayQuiz = () => {
   const rankText = playerRank ? getOrdinal(playerRank) : "-";
   const lastTimeText = (sessionData as any)?.lastTimeTaken ? `${(sessionData as any).lastTimeTaken.toFixed(1)}s` : "-";
 
+  const currentParticipant = allParticipants?.find(p => p._id === participantId);
+  const totalVotingTime = (currentParticipant as any)?.total_time ? `${(currentParticipant as any).total_time.toFixed(1)}s` : "-";
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-200/30 via-zinc-200/80 to-zinc-200/80 dark:bg-gradient-to-b dark:from-black/80 dark:via-black/80 dark:to-black/80 pt-4 pb-4 ">
       <div className="container max-w-md sm:max-w-2xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mt-12">
@@ -196,7 +205,7 @@ const PlayQuiz = () => {
               {session?.status === 'finished' && (
                 <Button
                   variant="ghost"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate(isSignedIn ? '/dashboard' : '/')}
                   className="px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base md:px-5 md:py-3 md:text-sm rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
                 >
                   Back to Home
@@ -384,22 +393,28 @@ const PlayQuiz = () => {
             <div className="mb-8">
               <h4 className="text-xl dark:text-white/90 font-semibold">Your Position - {rankText}</h4>
               <p className="text-sm dark:text-white/70">Correct answers: {participant?.score || 0}</p>
-              <p className="text-sm dark:text-white/70">Voting time: {lastTimeText}</p>
+              <p className="text-sm dark:text-white/70">Total voting time: {totalVotingTime}</p>
             </div>
             <div className="space-y-3">
               {allParticipants?.map((p, i) => (
                 <div
                   key={p._id}
-                  className={`flex justify-between items-center p-2 rounded-lg ${p._id === participantId ? 'bg-primary/20 border-2 border-primary' :
-                    i === 0 ? 'bg-warning/20 border-2 border-warning' :
-                      'bg-muted'
+                  className={`flex justify-between items-center p-2 rounded-lg ${p._id === participantId && i > 2 ? 'bg-gradient-to-r from-zinc-200/40 via-zinc-300/40 to-zinc-200/40 dark:from-zinc-700/40 dark:via-zinc-600/40 dark:to-zinc-700/40 border-4 border-zinc-400 dark:border-zinc-600' :
+                    p._id === participantId ? 'bg-primary/20 border-2 border-primary' :
+                      i === 0 ? 'bg-warning/15 border border-warning' :
+                        i === 1 ? 'bg-slate-300/15 dark:bg-slate-600/15 border border-slate-300 dark:border-slate-600' :
+                          i === 2 ? 'bg-amber-300/10 dark:bg-amber-700/10 border border-amber-400 dark:border-amber-700' :
+                            'bg-muted'
                     }`}
                 >
-                  <div className="flex items-center gap-3 dark:text-zinc-200 text-base sm:text-lg md:text-xl">
-                    <span className=" font-bold">{i + 1}</span>
+                  <div className="flex items-center gap-5 dark:text-zinc-200 text-base sm:text-lg md:text-xl">
+                    <span className="ml-2 font-bold">{i + 1}</span>
                     <span className="font-semibold">{p.name}</span>
                   </div>
-                  <span className="text-xl font-bold text-orange-300">{p.score}</span>
+                  <div className="flex items-center gap-7">
+                    <span className="text-xl font-bold text-orange-300">{p.score}</span>
+                    <span className="mr-2 text-sm text-muted-foreground">{(p as any).total_time ? `${(p as any).total_time.toFixed(1)}s` : '-'}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -408,37 +423,66 @@ const PlayQuiz = () => {
         )}
 
         {session.status === 'finished' && (
-          <Card className="px-5 pb-8 text-center animate-in fade-in zoom-in-95 duration-700">
-            <DotLottieReact src="https://ik.imagekit.io/devsoc/Quizora/public/Trophy.lottie?updatedAt=1764162087115" autoplay
-              className="h-32 w-32 sm:h-32 sm:w-32 md:h-32 md:w-32 lg:h-40 lg:w-40  mx-auto" />
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl  font-bold mb-2 dark:text-zinc-300">Final Leaderboard!</h2>
-            <div className="my-5">
-              <h4 className="text-xl font-semibold dark:text-white/90">You finished {rankText}!</h4>
-              <p className="text-sm dark:text-white/70">Correct answers: {participant?.score || 0}</p>
-              <p className="text-sm dark:text-white/70">Voting time: {lastTimeText}</p>
-            </div>
-            <div className="space-y-3 dark:text-zinc-200">
-              {allParticipants?.map((p, i) => (
-                <div
-                  key={p._id}
-                  className={`flex justify-between items-center p-2 rounded-lg ${p._id === participantId ? 'bg-primary/20 border-2 border-primary' :
-                    i === 0 ? 'bg-warning/20 border-2 border-warning' :
-                      'bg-muted'
-                    }`}
+          <Card className="px-5 py-8 text-center animate-in fade-in zoom-in-95 duration-700">
+            {session.current_question_index < ((sessionData?.quiz as any)?.questions?.length || 999) - 1 ? (
+              // Quiz ended early by host
+              <>
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl font-bold mb-4 dark:text-zinc-300">
+                  Host has ended the Quiz
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  The quiz was ended early by the host.
+                </p>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate(isSignedIn ? '/dashboard' : '/')}
+                  className="hover:bg-gradient-to-r from-primary to-secondary mb-6 rounded-full text-zinc-500"
                 >
-                  <div className="flex items-center gap-3 text-base sm:text-lg md:text-xl">
-                    <span className="font-bold">{i + 1}</span>
-                    <span className="font-semibold">{p.name}</span>
-                  </div>
-                  <span className="text-xl font-bold text-orange-300">{p.score}</span>
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Home
+                </Button>
+              </>
+            ) : (
+              // Quiz completed normally
+              <>
+                <DotLottieReact src="https://ik.imagekit.io/devsoc/Quizora/public/Trophy.lottie?updatedAt=1764162087115" autoplay
+                  className="h-32 w-32 sm:h-32 sm:w-32 md:h-32 md:w-32 lg:h-40 lg:w-40  mx-auto" />
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl xl:text-4xl  font-bold mb-2 dark:text-zinc-300">Final Leaderboard!</h2>
+                <div className="my-5">
+                  <h4 className="text-xl font-semibold dark:text-white/90">You finished {rankText}!</h4>
+                  <p className="text-sm dark:text-white/70">Correct answers: {participant?.score || 0}</p>
+                  <p className="text-sm dark:text-white/70">Total voting time: {totalVotingTime}</p>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-3 dark:text-zinc-200">
+                  {allParticipants?.map((p, i) => (
+                    <div
+                      key={p._id}
+                      className={`flex justify-between items-center p-2 rounded-lg ${p._id === participantId && i > 2 ? 'bg-gradient-to-r from-zinc-200/40 via-zinc-300/40 to-zinc-200/40 dark:from-zinc-700/40 dark:via-zinc-600/40 dark:to-zinc-700/40 border-4 border-zinc-400 dark:border-zinc-600' :
+                        p._id === participantId ? 'bg-primary/20 border-2 border-primary' :
+                          i === 0 ? 'bg-warning/15 border border-warning' :
+                            i === 1 ? 'bg-slate-300/15 dark:bg-slate-600/15 border border-slate-300 dark:border-slate-600' :
+                              i === 2 ? 'bg-amber-300/10 dark:bg-amber-700/10 border border-amber-400 dark:border-amber-700' :
+                                'bg-muted'
+                        }`}
+                    >
+                      <div className="flex items-center gap-5 text-base sm:text-lg md:text-xl">
+                        <span className="ml-2 font-bold">{i + 1}</span>
+                        <span className="font-semibold">{p.name}</span>
+                      </div>
+                      <div className="flex items-center gap-7">
+                        <span className="text-xl font-bold text-orange-300">{p.score}</span>
+                        <span className="mr-2 text-sm text-muted-foreground">{(p as any).total_time ? `${(p as any).total_time.toFixed(1)}s` : '-'}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
 
           </Card>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

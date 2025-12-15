@@ -19,11 +19,11 @@ export const createSession = mutation({
     if (!identity) {
       throw new Error("You must be logged in to host a quiz.");
     }
-    
+
     const [quiz] = await Promise.all([
       ctx.db.get(args.quizId),
     ]);
-    
+
     if (!quiz) {
       throw new Error("Quiz not found.");
     }
@@ -155,7 +155,31 @@ export const getHostSessionData = query({
       }
     }
 
-    return { session, quiz, questions, participants, currentQuestion, answerStats };
+    // Calculate total time for all participants
+    const allSessionAnswers = await ctx.db
+      .query("answers")
+      .withIndex("by_session_question", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    const participantTotalTimes: Record<string, number> = {};
+    for (const answer of allSessionAnswers) {
+      const pid = answer.participantId as string;
+      participantTotalTimes[pid] = (participantTotalTimes[pid] || 0) + (answer.time_taken || 0);
+    }
+
+    // Add total_time to each participant
+    const participantsWithTime = participants.map((p) => ({
+      ...p,
+      total_time: participantTotalTimes[p._id] || 0
+    }));
+
+    // Sort by score DESC, then by total_time ASC (lower remaining time = faster)
+    const sortedParticipants = participantsWithTime.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.total_time - b.total_time;  // Lower total remaining time wins (faster)
+    });
+
+    return { session, quiz, questions, participants: sortedParticipants, currentQuestion, answerStats };
   },
 });
 
@@ -230,11 +254,31 @@ export const getPlayerSessionData = query({
       }
     }
 
+    // Calculate total time for all participants
+    // Get all answers for this session
+    const allSessionAnswers = await ctx.db
+      .query("answers")
+      .withIndex("by_session_question", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    // Group by participant and calculate total time
+    const participantTotalTimes: Record<string, number> = {};
+    for (const answer of allSessionAnswers) {
+      const pid = answer.participantId as string;
+      participantTotalTimes[pid] = (participantTotalTimes[pid] || 0) + (answer.time_taken || 0);
+    }
+
     // For players, hide the score gained from the current question until reveal
     const visibleParticipants = allParticipants.map((p) => {
       const extra = currentQuestion ? (currentQuestionScores[p._id] || 0) : 0;
       const visibleScore = session.reveal_answer ? p.score : Math.max(0, p.score - extra);
-      return { ...p, score: visibleScore };
+      return { ...p, score: visibleScore, total_time: participantTotalTimes[p._id] || 0 };
+    });
+
+    // Sort by score DESC, then by total_time ASC (lower remaining time = faster)
+    const sortedVisibleParticipants = visibleParticipants.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.total_time - b.total_time;  // Lower total remaining time wins (faster)
     });
 
     const visibleParticipant = (() => {
@@ -255,7 +299,7 @@ export const getPlayerSessionData = query({
       session,
       quiz,
       participant: visibleParticipant,
-      allParticipants: visibleParticipants,
+      allParticipants: sortedVisibleParticipants,
       currentQuestion: secureCurrentQuestion,
       answerStats,
       hasAnswered,

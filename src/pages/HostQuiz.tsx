@@ -179,33 +179,13 @@ const HostQuiz = () => {
               <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Join Code: <span className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-orange-300">{session?.join_code}</span></p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-              {session?.status === 'active' && session?.show_leaderboard && (
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <Button
-                    onClick={endQuiz}
-                    size="sm"
-                    variant="ghost"
-                    className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base rounded-full hover:bg-muted/70 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-white/70 opacity-70"
-                  >
-                    End Quiz
-                  </Button>
-                  <Button
-                    onClick={nextQuestion}
-                    size="sm"
-                    variant="ghost"
-                    className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
-                  >
-                    Next Question
-                  </Button>
-                </div>
-              )}
               {session?.status === 'finished' && (
                 <Button
                   variant="ghost"
                   onClick={() => navigate('/dashboard')}
                   className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
                 >
-                  <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Back to Home</span>
                   <span className="sm:hidden">Home</span>
                 </Button>
@@ -386,8 +366,26 @@ const HostQuiz = () => {
           {session?.status === 'active' && session?.show_leaderboard && (
             <div className="text-center py-4 animate-in fade-in slide-in-from-left-5 duration-500">
 
-              <Trophy className="h-10 w-10 sm:h-12 sm:w-12 md:h-16 md:w-16 lg:h-20 lg:w-20 mx-auto mb-4 text-warning" />
-              <h2 className="text-3xl font-bold mb-6 dark:text-zinc-100">Leaderboard</h2>
+              <Trophy className="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 mx-auto mb-4 text-warning" />
+              <h2 className="text-xl sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl font-bold mb-6 dark:text-zinc-100">Leaderboard</h2>
+              <div className="flex justify-between gap-1 sm:gap-2 mb-2">
+                  <Button
+                    onClick={endQuiz}
+                    size="sm"
+                    variant="ghost"
+                    className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base rounded-full hover:bg-muted/70 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-white/70 opacity-70"
+                  >
+                    End Quiz
+                  </Button>
+                  <Button
+                    onClick={nextQuestion}
+                    size="sm"
+                    variant="ghost"
+                    className="px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2 md:text-base rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
+                  >
+                    Next
+                  </Button>
+                </div>
 
               <div className="space-y-3 mb-8 dark:text-zinc-300">
                 {participants?.map((p, i) => (
@@ -401,7 +399,7 @@ const HostQuiz = () => {
                   >
                     <div className="flex items-center gap-5 text-base sm:text-lg md:text-xl">
                       <span className="ml-2 font-bold">{i + 1}</span>
-                      <span className="font-semibold">{p.name}</span>
+                      <span className="font-semibold text-sm sm:text-m md:text-lg lg:text-xl xl:text-xl ">{p.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xl font-bold text-orange-300">{p.score}</span>

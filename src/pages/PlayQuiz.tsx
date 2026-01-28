@@ -209,7 +209,9 @@ const PlayQuiz = () => {
                   onClick={() => navigate(isSignedIn ? '/dashboard' : '/')}
                   className="px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base md:px-5 md:py-3 md:text-sm rounded-full hover:bg-muted/50 hover:text-orange-300 opacity-70"
                 >
-                  Back to Home
+                  <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Back to Home</span>
+                  <span className="sm:hidden">Home</span>
                 </Button>
               )}
               <div className="text-right flex-shrink-0">
@@ -391,10 +393,10 @@ const PlayQuiz = () => {
 
         {session.status === 'active' && session.show_leaderboard && (
           <Card className="p-4 text-center animate-in fade-in slide-in-from-left-5 duration-500">
-            <Trophy className="h-16 w-16 mx-auto mb-4 text-warning" />
-            <h2 className="text-3xl font-bold mb-8 dark:text-zinc-200">Current Standings</h2>
+            <Trophy className="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20  mx-auto mb-4 text-warning" />
+            <h2 className="text-xl sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl  font-bold mb-8 dark:text-zinc-200">Current Standings</h2>
             <div className="mb-8">
-              <h4 className="text-xl dark:text-white/90 font-semibold">Your Position - {rankText}</h4>
+              <h4 className="text-lg sm:text-lg md:text-xl lg:text-xl xl:text-xl dark:text-white/90 font-semibold">Your Position - {rankText}</h4>
               <p className="text-sm dark:text-white/70">Correct answers: {participant?.score || 0}</p>
               <p className="text-sm dark:text-white/70">Total voting time: {totalVotingTime}</p>
             </div>
@@ -412,7 +414,7 @@ const PlayQuiz = () => {
                 >
                   <div className="flex items-center gap-5 dark:text-zinc-200 text-base sm:text-lg md:text-xl">
                     <span className="ml-2 font-bold">{i + 1}</span>
-                    <span className="font-semibold">{p.name}</span>
+                    <span className="font-semibold text-sm sm:text-m md:text-lg lg:text-xl xl:text-xl ">{p.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xl font-bold text-orange-300">{p.score}</span>

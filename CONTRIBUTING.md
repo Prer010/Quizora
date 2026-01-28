@@ -15,10 +15,9 @@ We appreciate all kinds of contributions — code, docs, bug reports, and ideas.
 
 ## 🌱 Branch Naming Convention
 
-feature/short-description
-fix/bug-name
-docs/readme-update
-
+- feature/short-description
+- fix/bug-name
+- docs/readme-update
 
 ---
 
